@@ -216,6 +216,7 @@ def do_plot(teams, shots, filename):
     tight_layout()
     savefig(filename)
     close()
+    print(filename)
 
 
 def main():
