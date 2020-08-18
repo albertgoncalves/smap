@@ -6,10 +6,15 @@ if [ ! -d "$WD/out" ]; then
     mkdir "$WD/out"
 fi
 
+gg () {
+    xdg-open "$(python src/plot.py "$(bash src/game.sh "$1")")"
+}
+
 jqc () {
     jq . "$1" -C | less -R
 }
 
+export -f gg
 export -f jqc
 alias flake8="flake8 --ignore=E722"
 alias open="xdg-open"

@@ -3,6 +3,8 @@
 set -euxo pipefail
 
 game_id=$1
+game_json="$WD/out/game_${game_id}.json"
 
 curl "https://statsapi.web.nhl.com/api/v1/game/${game_id}/feed/live?site=en_nhl" \
-    > "$WD/out/game_${game_id}.json"
+    > "$game_json"
+echo "$game_json"

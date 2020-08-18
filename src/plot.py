@@ -20,6 +20,13 @@ def get_shots(filename):
             "venue": venue,
             "name": team["name"],
         }
+    players = {}
+    for key in blob["gameData"]["players"].keys():
+        player = blob["gameData"]["players"][key]
+        players[player["id"]] = {
+            "first_name": player["firstName"],
+            "last_name": player["lastName"],
+        }
     shots = []
     for event in blob["liveData"]["plays"]["allPlays"]:
         event_result = event["result"]["event"]
@@ -29,15 +36,15 @@ def get_shots(filename):
         coordinates = event["coordinates"]
         team_id = event["team"]["id"]
         result = event["result"]
-        name = ""
+        player_id = None
         for player in event["players"]:
             if event_result == "Goal":
                 if player["playerType"] == "Scorer":
-                    name = player["player"]["fullName"]
+                    player_id = player["player"]["id"]
                     break
             else:
                 if player["playerType"] == "Shooter":
-                    name = player["player"]["fullName"]
+                    player_id = player["player"]["id"]
                     break
         shots.append({
             "id": about["eventId"],
@@ -47,7 +54,7 @@ def get_shots(filename):
             "y": coordinates["y"],
             "team_id": team_id,
             "home": teams[team_id]["venue"] == "home",
-            "player": name,
+            "player_id": player_id,
             "type": result["event"],
             "secondary_type": result.get("secondaryType", ""),
             "goal": event_result == "Goal",
@@ -58,7 +65,10 @@ def get_shots(filename):
     shots.loc[shots.home & ~odd_periods, "y"] *= -1
     shots.loc[~shots.home & ~odd_periods, "x"] *= -1
     shots.loc[~shots.home & odd_periods, "y"] *= -1
-    return (teams, shots)
+    if (len(shots) != 0) and (shots.x.mean() < 0):
+        shots.x *= -1
+        shots.y *= -1
+    return (teams, players, shots)
 
 
 def get_curve(r, degree):
@@ -111,15 +121,8 @@ def set_rink(ax, zorder=2):
     y_goal_line = 43
     pad = 1
     y_pad_boards = max_y_boards - (pad * 0.75)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.axis("off")
-    ax.set_aspect("equal")
-    ax.set_ylim([
-        min_x_boards - pad,
-        max_x_boards + pad,
-    ])
     ax.set_xlim([(max_y_boards + pad) * -1, max_y_boards + pad])
+    ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
     kwargs = {"alpha": 0.25, "zorder": zorder}
     ax.plot(
@@ -178,41 +181,48 @@ def set_rink(ax, zorder=2):
         ax.add_line(x)
 
 
-def do_plot(teams, shots, filename):
-    (_, axs) = subplots(1, 2, figsize=(15.5, 8.25))
-    kwargs = {
-        "family": "monospace",
-        "alpha": 0.775,
-    }
+def do_plot(teams, players, shots, filename):
+    (_, axs) = subplots(3, 2, figsize=(5.5, 9.75))
+    kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(teams.items()):
-        team_shots = shots.loc[shots.team_id == team_id]
-        set_rink(axs[i])
-        axs[i].scatter(
-            team_shots.y,
-            team_shots.x,
-            color=team_shots.goal.map({True: "coral", False: "c"}),
-            s=750,
-            edgecolor="0.1",
-            alpha=0.275,
-            zorder=0,
-        )
-        (min_x, max_x) = axs[i].get_xlim()
-        (min_y, max_y) = axs[i].get_ylim()
-        for (_, row) in team_shots.iterrows():
-            y = row.x
-            x = row.y
-            if (min_x < x) and (x < max_x) and (min_y < y) and (y < max_y):
-                axs[i].text(
-                    x,
-                    y,
-                    row.player.split(" ", 1)[1],
-                    size="x-small",
-                    ha="center",
-                    va="center",
-                    zorder=2,
-                    **kwargs,
-                )
-        axs[i].set_title(team["name"], **kwargs)
+        axs[0, i].set_title(team["name"], **kwargs)
+        for j in range(3):
+            axs[j, i].set_xticks([])
+            axs[j, i].set_yticks([])
+            for edge in ["top", "right", "left", "bottom"]:
+                axs[j, i].spines[edge].set_visible(False)
+            axs[j, i].set_aspect("equal")
+            set_rink(axs[j, i])
+            team_shots = shots.loc[
+                (shots.team_id == team_id) & (shots.period == j + 1),
+            ]
+            axs[j, i].scatter(
+                team_shots.y,
+                team_shots.x,
+                color=team_shots.goal.map({True: "coral", False: "c"}),
+                marker="o",
+                s=350,
+                alpha=0.275,
+                zorder=0,
+            )
+            (min_x, max_x) = axs[j, i].get_xlim()
+            (min_y, max_y) = axs[j, i].get_ylim()
+            for (_, row) in team_shots.iterrows():
+                y = row.x
+                x = row.y
+                if (min_x < x) and (x < max_x) and (min_y < y) and (y < max_y):
+                    axs[j, i].text(
+                        x,
+                        y,
+                        players[row.player_id]["last_name"],
+                        size="x-small",
+                        ha="center",
+                        va="center",
+                        zorder=2,
+                        **kwargs,
+                    )
+    for j in range(3):
+        axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
     tight_layout()
     savefig(filename)
     close()
