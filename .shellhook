@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+export WD=$PWD
+
+if [ ! -d "$WD/out" ]; then
+    mkdir "$WD/out"
+fi
+
+jqc () {
+    jq . "$1" -C | less -R
+}
+
+export -f jqc
+alias flake8="flake8 --ignore=E722"
+alias open="xdg-open"

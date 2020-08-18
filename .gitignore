@@ -1,0 +1,7 @@
+*
+!.gitignore
+!*.nix
+!.shellhook
+!src/
+!*.sh
+!*.py
