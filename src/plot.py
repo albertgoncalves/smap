@@ -124,7 +124,7 @@ def set_rink(ax, zorder=2):
     ax.set_xlim([(max_y_boards + pad) * -1, max_y_boards + pad])
     ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
-    kwargs = {"alpha": 0.25, "zorder": zorder}
+    kwargs = {"alpha": 0.2, "zorder": zorder}
     ax.plot(
         (y_boards * max_y_boards * 2) - max_y_boards,
         x_boards * max_x_boards,
@@ -182,7 +182,7 @@ def set_rink(ax, zorder=2):
 
 
 def do_plot(teams, players, shots, filename):
-    (_, axs) = subplots(3, 2, figsize=(5.5, 9.75))
+    (_, axs) = subplots(3, 2, figsize=(6.75, 12))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(teams.items()):
         axs[0, i].set_title(team["name"], **kwargs)
