@@ -59,6 +59,8 @@ def get_shots(filename):
             "secondary_type": result.get("secondaryType", ""),
             "goal": event_result == "Goal",
         })
+    if len(shots) == 0:
+        exit(1)
     shots = DataFrame(shots)
     odd_periods = (shots.period % 2) == 1
     shots.loc[shots.home & odd_periods, "x"] *= -1

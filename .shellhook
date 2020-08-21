@@ -7,7 +7,9 @@ if [ ! -d "$WD/out" ]; then
 fi
 
 gg () {
-    xdg-open "$(python src/plot.py "$(bash src/game.sh "$1")")"
+    game=$(bash src/game.sh "$1") || return
+    plot=$(python src/plot.py "$game") || return
+    xdg-open "$plot"
 }
 
 jqc () {
