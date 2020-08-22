@@ -26,6 +26,7 @@ def get_shots(filename):
         players[player["id"]] = {
             "first_name": player["firstName"],
             "last_name": player["lastName"],
+            "handedness": player["shootsCatches"],
         }
     shots = []
     for event in blob["liveData"]["plays"]["allPlays"]:
