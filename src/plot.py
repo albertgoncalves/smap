@@ -233,7 +233,7 @@ def do_plot(time, teams, players, shots, filename):
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
     fig.suptitle(time.strftime("%Y-%m-%d %H:%M:%S (UTC)"), fontsize="x-small")
-    tight_layout(rect=(0.0, 0.0, 1.0, 0.975))
+    tight_layout(rect=(0.0, 0.0, 1.0, 0.9975))
     savefig(filename)
     close()
     print(filename)
