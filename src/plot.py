@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 from json import load
 from os.path import splitext
 from sys import argv
@@ -13,6 +14,10 @@ from pandas import DataFrame
 def get_shots(filename):
     with open(filename, "r") as file:
         blob = load(file)
+    time = datetime.strptime(
+        blob["gameData"]["datetime"]["dateTime"],
+        "%Y-%m-%dT%H:%M:%SZ",
+    )
     teams = {}
     for venue in ["home", "away"]:
         team = blob["gameData"]["teams"][venue]
@@ -71,7 +76,7 @@ def get_shots(filename):
     if (len(shots) != 0) and (shots.x.mean() < 0):
         shots.x *= -1
         shots.y *= -1
-    return (teams, players, shots)
+    return (time, teams, players, shots)
 
 
 def get_curve(r, degree):
@@ -107,7 +112,7 @@ def get_unit_boards():
     )
 
 
-def set_rink(ax, zorder=2):
+def set_rink(ax):
     x_blue_line = 29
     max_y_boards = 45
     min_x_boards = 0
@@ -127,7 +132,7 @@ def set_rink(ax, zorder=2):
     ax.set_xlim([-(max_y_boards + pad), max_y_boards + pad])
     ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
-    kwargs = {"alpha": 0.2, "zorder": zorder}
+    kwargs = {"alpha": 0.2, "zorder": 2}
     ax.plot(
         (y_boards * max_y_boards * 2) - max_y_boards,
         x_boards * max_x_boards,
@@ -185,11 +190,11 @@ def set_rink(ax, zorder=2):
     return (min_x_boards, max_x_boards, -max_y_boards, max_y_boards)
 
 
-def do_plot(teams, players, shots, filename):
-    (_, axs) = subplots(3, 2, figsize=(6.75, 12))
+def do_plot(time, teams, players, shots, filename):
+    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(5.5, 9.5))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(teams.items()):
-        axs[0, i].set_title(team["name"], **kwargs)
+        axs[0, i].set_title(team["name"], fontsize="medium", **kwargs)
         for j in range(3):
             axs[j, i].set_xticks([])
             axs[j, i].set_yticks([])
@@ -219,7 +224,7 @@ def do_plot(teams, players, shots, filename):
                     row.y,
                     row.x,
                     players[row.player_id]["last_name"],
-                    size="x-small",
+                    size="xx-small",
                     ha="center",
                     va="center",
                     zorder=2,
@@ -227,7 +232,8 @@ def do_plot(teams, players, shots, filename):
                 )
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
-    tight_layout()
+    fig.suptitle(time.strftime("%Y-%m-%d %H:%M:%S (UTC)"), fontsize="x-small")
+    tight_layout(rect=(0.0, 0.0, 1.0, 0.975))
     savefig(filename)
     close()
     print(filename)
