@@ -18,5 +18,5 @@ jqc () {
 
 export -f gg
 export -f jqc
-alias flake8="flake8 --ignore=E722"
+alias flake8="flake8 --ignore=E722,W503"
 alias open="xdg-open"

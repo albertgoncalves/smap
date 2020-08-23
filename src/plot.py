@@ -82,7 +82,7 @@ def get_curve(r, degree):
 def get_unit_boards():
     min_y = 0
     max_y = 4.5
-    min_x_array = array([-1])
+    min_x_array = array([0])
     max_y_array = array([max_y])
     delta_y = max_y - min_y
     (lower_x, lower_y) = get_curve(1, arange(90, 180, 1))
@@ -110,7 +110,7 @@ def get_unit_boards():
 def set_rink(ax, zorder=2):
     x_blue_line = 29
     max_y_boards = 45
-    min_x_boards = -5
+    min_x_boards = 0
     max_x_boards = 100
     x_center_line = 0
     y_center_line = 0
@@ -123,7 +123,7 @@ def set_rink(ax, zorder=2):
     goal_height = 6
     y_goal_line = 43
     y_pad_boards = max_y_boards - 0.75
-    pad = 4
+    pad = 10
     ax.set_xlim([-(max_y_boards + pad), max_y_boards + pad])
     ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
@@ -182,6 +182,7 @@ def set_rink(ax, zorder=2):
         ),
     ]:
         ax.add_line(x)
+    return (min_x_boards, max_x_boards, -max_y_boards, max_y_boards)
 
 
 def do_plot(teams, players, shots, filename):
@@ -195,16 +196,14 @@ def do_plot(teams, players, shots, filename):
             for edge in ["top", "right", "left", "bottom"]:
                 axs[j, i].spines[edge].set_visible(False)
             axs[j, i].set_aspect("equal")
-            set_rink(axs[j, i])
-            (min_x, max_x) = axs[j, i].get_xlim()
-            (min_y, max_y) = axs[j, i].get_ylim()
+            (min_x, max_x, min_y, max_y) = set_rink(axs[j, i])
             team_shots = shots.loc[
                 (shots.team_id == team_id)
                 & (shots.period == j + 1)
-                & (min_y < shots.x)
-                & (shots.x < max_y)
-                & (min_x < shots.y)
-                & (shots.y < max_x),
+                & (min_x < shots.x)
+                & (shots.x < max_x)
+                & (min_y < shots.y)
+                & (shots.y < max_y),
             ]
             axs[j, i].scatter(
                 team_shots.y,
