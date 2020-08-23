@@ -122,9 +122,9 @@ def set_rink(ax, zorder=2):
     goal_width = 2
     goal_height = 6
     y_goal_line = 43
-    pad = 1
-    y_pad_boards = max_y_boards - (pad * 0.75)
-    ax.set_xlim([(max_y_boards + pad) * -1, max_y_boards + pad])
+    y_pad_boards = max_y_boards - 0.75
+    pad = 4
+    ax.set_xlim([-(max_y_boards + pad), max_y_boards + pad])
     ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
     kwargs = {"alpha": 0.2, "zorder": zorder}
@@ -196,8 +196,15 @@ def do_plot(teams, players, shots, filename):
                 axs[j, i].spines[edge].set_visible(False)
             axs[j, i].set_aspect("equal")
             set_rink(axs[j, i])
+            (min_x, max_x) = axs[j, i].get_xlim()
+            (min_y, max_y) = axs[j, i].get_ylim()
             team_shots = shots.loc[
-                (shots.team_id == team_id) & (shots.period == j + 1),
+                (shots.team_id == team_id)
+                & (shots.period == j + 1)
+                & (min_y < shots.x)
+                & (shots.x < max_y)
+                & (min_x < shots.y)
+                & (shots.y < max_x),
             ]
             axs[j, i].scatter(
                 team_shots.y,
@@ -208,22 +215,17 @@ def do_plot(teams, players, shots, filename):
                 alpha=0.275,
                 zorder=0,
             )
-            (min_x, max_x) = axs[j, i].get_xlim()
-            (min_y, max_y) = axs[j, i].get_ylim()
             for (_, row) in team_shots.iterrows():
-                y = row.x
-                x = row.y
-                if (min_x < x) and (x < max_x) and (min_y < y) and (y < max_y):
-                    axs[j, i].text(
-                        x,
-                        y,
-                        players[row.player_id]["last_name"],
-                        size="x-small",
-                        ha="center",
-                        va="center",
-                        zorder=2,
-                        **kwargs,
-                    )
+                axs[j, i].text(
+                    row.y,
+                    row.x,
+                    players[row.player_id]["last_name"],
+                    size="x-small",
+                    ha="center",
+                    va="center",
+                    zorder=2,
+                    **kwargs,
+                )
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
     tight_layout()
