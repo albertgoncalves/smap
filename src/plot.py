@@ -128,7 +128,7 @@ def set_rink(ax):
     goal_height = 6
     y_goal_line = 43
     y_pad_boards = max_y_boards - 0.75
-    pad = 10
+    pad = 12
     ax.set_xlim([-(max_y_boards + pad), max_y_boards + pad])
     ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
     (x_boards, y_boards) = get_unit_boards()
@@ -191,7 +191,7 @@ def set_rink(ax):
 
 
 def do_plot(time, teams, players, shots, filename):
-    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(5.5, 9.5))
+    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(5.75, 9.75))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(teams.items()):
         axs[0, i].set_title(team["name"], fontsize="medium", **kwargs)
@@ -232,8 +232,8 @@ def do_plot(time, teams, players, shots, filename):
                 )
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
-    fig.suptitle(time.strftime("%Y-%m-%d %H:%M:%S (UTC)"), fontsize="x-small")
-    tight_layout(rect=(0.0, 0.0, 1.0, 0.9975))
+    fig.suptitle(time.strftime("%Y-%m-%d %H:%M:%S (UTC)"), fontsize="small")
+    tight_layout()
     savefig(filename)
     close()
     print(filename)
