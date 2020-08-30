@@ -128,9 +128,10 @@ def set_rink(ax):
     goal_height = 6
     y_goal_line = 43
     y_pad_boards = max_y_boards - 0.75
-    pad = 12
-    ax.set_xlim([-(max_y_boards + pad), max_y_boards + pad])
-    ax.set_ylim([min_x_boards - pad, max_x_boards + pad])
+    x_limit = max_y_boards + 12
+    y_pad = 5
+    ax.set_xlim([-x_limit, x_limit])
+    ax.set_ylim([min_x_boards - y_pad, max_x_boards + y_pad])
     (x_boards, y_boards) = get_unit_boards()
     kwargs = {"alpha": 0.2, "zorder": 2}
     ax.plot(
@@ -191,10 +192,10 @@ def set_rink(ax):
 
 
 def do_plot(time, teams, players, shots, filename):
-    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(5.75, 9.75))
+    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(6, 9.75))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(teams.items()):
-        axs[0, i].set_title(team["name"], fontsize="medium", **kwargs)
+        axs[0, i].set_title(team["name"], fontsize="x-large", **kwargs)
         for j in range(3):
             axs[j, i].set_xticks([])
             axs[j, i].set_yticks([])
@@ -232,7 +233,7 @@ def do_plot(time, teams, players, shots, filename):
                 )
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
-    fig.suptitle(time.strftime("%Y-%m-%d %H:%M:%S (UTC)"), fontsize="small")
+    fig.suptitle(time.strftime("%Y-%m-%dT%H:%M:%SZ"), fontsize="medium")
     tight_layout()
     savefig(filename)
     close()
