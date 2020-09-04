@@ -73,7 +73,7 @@ def get_shots(filename):
     shots.loc[shots.home & ~odd_periods, "y"] *= -1
     shots.loc[~shots.home & ~odd_periods, "x"] *= -1
     shots.loc[~shots.home & odd_periods, "y"] *= -1
-    if (len(shots) != 0) and (shots.x.mean() < 0):
+    if shots.x.mean() < 0:
         shots.x *= -1
         shots.y *= -1
     return (time, teams, players, shots)
