@@ -9,7 +9,7 @@ fi
 gg () {
     game=$(bash src/game.sh "$1") || return
     plot=$(python src/plot.py "$game") || return
-    xdg-open "$plot"
+    feh "$plot"
 }
 
 jqc () {

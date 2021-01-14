@@ -6,6 +6,7 @@ mkShell {
             matplotlib
             pandas
         ]))
+        feh
         jq
         shellcheck
     ];
