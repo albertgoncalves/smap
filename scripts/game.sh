@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -eux
 
 game_id=$1
 game_json="$WD/out/game_${game_id}.json"

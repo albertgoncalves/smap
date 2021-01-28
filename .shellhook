@@ -7,8 +7,8 @@ if [ ! -d "$WD/out" ]; then
 fi
 
 gg () {
-    game=$(bash src/game.sh "$1") || return
-    plot=$(python src/plot.py "$game") || return
+    game=$(./scripts/game.sh "$1") || return
+    plot=$(./scripts/plot.py "$game") || return
     feh "$plot"
 }
 
@@ -19,4 +19,3 @@ jqc () {
 export -f gg
 export -f jqc
 alias flake8="flake8 --ignore=E722,W503"
-alias open="xdg-open"

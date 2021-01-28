@@ -2,6 +2,6 @@
 !.gitignore
 !*.nix
 !.shellhook
-!src/
+!scripts/
 !*.sh
 !*.py
