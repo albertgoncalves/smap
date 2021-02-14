@@ -3,7 +3,8 @@
 from datetime import datetime
 from json import load
 from os.path import splitext
-from sys import argv
+from pprint import pformat
+from sys import argv, stderr
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Rectangle
@@ -79,6 +80,9 @@ def get_data(filename):
             continue
         about = event["about"]
         coordinates = event["coordinates"]
+        if "x" not in coordinates.keys():
+            print(pformat(coordinates), file=stderr)
+            continue
         team_id = event["team"]["id"]
         result = event["result"]
         player_id = None
