@@ -230,6 +230,11 @@ def set_rink(ax):
         RINK["boards"]["x"]["lower"] - RINK["pad"]["y"],
         RINK["boards"]["x"]["upper"] + RINK["pad"]["y"],
     ])
+    ax.set_aspect("equal")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for edge in ["top", "right", "left", "bottom"]:
+        ax.spines[edge].set_visible(False)
 
 
 def do_plot(data, filename):
@@ -238,11 +243,6 @@ def do_plot(data, filename):
     for (i, (team_id, team)) in enumerate(data["teams"].items()):
         axs[0, i].set_title(team["name"], fontsize="x-large", **kwargs)
         for j in range(3):
-            axs[j, i].set_xticks([])
-            axs[j, i].set_yticks([])
-            for edge in ["top", "right", "left", "bottom"]:
-                axs[j, i].spines[edge].set_visible(False)
-            axs[j, i].set_aspect("equal")
             set_rink(axs[j, i])
             team_shots = data["shots"].loc[
                 (data["shots"].team_id == team_id) &
