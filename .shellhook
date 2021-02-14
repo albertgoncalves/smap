@@ -18,4 +18,4 @@ jqc () {
 
 export -f gg
 export -f jqc
-alias flake8="flake8 --ignore=E722,W503"
+alias flake8="flake8 --ignore=E741,W504"

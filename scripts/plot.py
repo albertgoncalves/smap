@@ -5,13 +5,52 @@ from json import load
 from os.path import splitext
 from sys import argv
 
-from matplotlib import lines, patches
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle, Rectangle
 from matplotlib.pyplot import close, savefig, subplots, tight_layout
 from numpy import arange, array, concatenate, cos, radians, sin
 from pandas import DataFrame
 
+RINK = {
+    "goal": {
+        "x": 87.0,
+        "y": -3.0,
+        "width": 2.0,
+        "height": 6.0,
+    },
+    "faceoff": {
+        "x": 69.0,
+        "y": 22.0,
+        "radius": 15.0,
+    },
+    "blue_line": {
+        "x": 29.0,
+    },
+    "red_line": {
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "goal_line": {
+        "y": 43.0,
+    },
+    "boards": {
+        "x": {
+            "lower": 0.0,
+            "upper": 100.0,
+        },
+        "y": {
+            "upper": 45.0,
+            "pad": -0.75,
+        },
+    },
+    "pad": {
+        "x": 12.0,
+        "y": 5.0,
+    },
+}
 
-def get_shots(filename):
+
+def get_data(filename):
     with open(filename, "r") as file:
         blob = load(file)
     time = datetime.strptime(
@@ -69,132 +108,130 @@ def get_shots(filename):
         exit(1)
     shots = DataFrame(shots)
     odd_periods = (shots.period % 2) == 1
-    shots.loc[shots.home & odd_periods, "x"] *= -1
-    shots.loc[shots.home & ~odd_periods, "y"] *= -1
-    shots.loc[~shots.home & ~odd_periods, "x"] *= -1
-    shots.loc[~shots.home & odd_periods, "y"] *= -1
+    shots.loc[shots.home & odd_periods, "x"] = \
+        -shots.loc[shots.home & odd_periods, "x"]
+    shots.loc[shots.home & ~odd_periods, "y"] = \
+        -shots.loc[shots.home & ~odd_periods, "y"]
+    shots.loc[~shots.home & ~odd_periods, "x"] = \
+        -shots.loc[~shots.home & ~odd_periods, "x"]
+    shots.loc[~shots.home & odd_periods, "y"] = \
+        -shots.loc[~shots.home & odd_periods, "y"]
     if shots.x.mean() < 0:
-        shots.x *= -1
-        shots.y *= -1
-    return (time, teams, players, shots)
+        shots.x = -shots.x
+        shots.y = -shots.y
+    return {
+        "time": time,
+        "teams": teams,
+        "players": players,
+        "shots": shots,
+    }
 
 
-def get_curve(r, degree):
+def get_curve(radius, degree):
     theta = radians(degree)
-    return (r * sin(theta), r * cos(theta))
+    return {
+        "x": radius * sin(theta),
+        "y": radius * cos(theta),
+    }
 
 
 def get_unit_boards():
-    min_y = 0
-    max_y = 4.5
-    min_x_array = array([0])
-    max_y_array = array([max_y])
-    delta_y = max_y - min_y
-    (lower_x, lower_y) = get_curve(1, arange(90, 180, 1))
-    (upper_x, upper_y) = get_curve(1, arange(0, 90, 1))
-    x = [
-        min_x_array,
-        upper_x + max_y - 1,
-        max_y_array,
-        lower_x + max_y - 1,
-        min_x_array,
-    ]
-    y = [
-        max_y_array,
-        upper_y + max_y - 1,
-        array([(delta_y / 2) + min_y]),
-        lower_y + min_y + 1,
-        array([min_y]),
-    ]
-    return (
-        concatenate(x, axis=None) / delta_y,
-        concatenate(y, axis=None) / delta_y
-    )
+    l = 4.5
+    lower = get_curve(1.0, arange(90.0, 180.0, 1.0))
+    upper = get_curve(1.0, arange(0.0, 90.0, 1.0))
+    return {
+        "x": concatenate([
+            array([0.0]),
+            upper["x"] + l - 1.0,
+            array([l]),
+            lower["x"] + l - 1.0,
+            array([0.0]),
+        ], axis=None) / l,
+        "y": concatenate([
+            array([l]),
+            upper["y"] + l - 1.0,
+            array([(l / 2.0)]),
+            lower["y"] + 1.0,
+            array([0.0]),
+        ], axis=None) / l,
+    }
 
 
 def set_rink(ax):
-    x_blue_line = 29
-    max_y_boards = 45
-    min_x_boards = 0
-    max_x_boards = 100
-    x_center_line = 0
-    y_center_line = 0
-    radius_faceoff = 15
-    x_faceoff = 69
-    y_faceoff = 22
-    x_goal = 87
-    y_goal = -3
-    goal_width = 2
-    goal_height = 6
-    y_goal_line = 43
-    y_pad_boards = max_y_boards - 0.75
-    x_limit = max_y_boards + 12
-    y_pad = 5
-    ax.set_xlim([-x_limit, x_limit])
-    ax.set_ylim([min_x_boards - y_pad, max_x_boards + y_pad])
-    (x_boards, y_boards) = get_unit_boards()
+    boards = get_unit_boards()
     kwargs = {"alpha": 0.2, "zorder": 2}
     ax.plot(
-        (y_boards * max_y_boards * 2) - max_y_boards,
-        x_boards * max_x_boards,
+        (boards["y"] * RINK["boards"]["y"]["upper"] * 2) -
+        RINK["boards"]["y"]["upper"],
+        boards["x"] * RINK["boards"]["x"]["upper"],
         lw=3.5,
         c="k",
         **kwargs,
     )
-    ax.add_patch(patches.Rectangle(
-        (y_goal, x_goal),
-        goal_height,
-        goal_width,
+    ax.add_patch(Rectangle(
+        (RINK["goal"]["y"], RINK["goal"]["x"]),
+        RINK["goal"]["height"],
+        RINK["goal"]["width"],
         facecolor="k",
         **kwargs,
     ))
-    for y in [-y_faceoff, y_faceoff]:
-        ax.add_patch(patches.Circle(
-            (y, x_faceoff),
-            radius_faceoff,
+    for y in [-RINK["faceoff"]["y"], RINK["faceoff"]["y"]]:
+        ax.add_patch(Circle(
+            (y, RINK["faceoff"]["x"]),
+            RINK["faceoff"]["radius"],
             lw=2,
             fill=None,
             **kwargs,
         ))
-    for x in [
-        lines.Line2D(
-            [y_goal_line * -1, y_goal_line],
-            [x_goal, x_goal],
-            c="k",
-            lw=2,
-            **kwargs,
-        ),
-        lines.Line2D(
-            [y_pad_boards * -1, y_pad_boards],
-            [x_center_line, x_center_line],
-            c="r",
-            lw=7,
-            **kwargs,
-        ),
-        lines.Line2D(
-            [y_pad_boards * -1, y_pad_boards],
-            [x_blue_line, x_blue_line],
-            c="b",
-            lw=7,
-            **kwargs,
-        ),
-        lines.Line2D(
-            [y_center_line, y_center_line],
-            [min_x_boards, max_x_boards],
-            c="k",
-            lw=1.5,
-            ls="--",
-            **kwargs,
-        ),
-    ]:
-        ax.add_line(x)
-    return (min_x_boards, max_x_boards, -max_y_boards, max_y_boards)
+    ax.add_line(Line2D(
+        [RINK["goal_line"]["y"] * -1, RINK["goal_line"]["y"]],
+        [RINK["goal"]["x"], RINK["goal"]["x"]],
+        c="k",
+        lw=2,
+        **kwargs,
+    ))
+    ax.add_line(Line2D(
+        [
+            -RINK["boards"]["y"]["upper"] - RINK["boards"]["y"]["pad"],
+            RINK["boards"]["y"]["upper"] + RINK["boards"]["y"]["pad"],
+        ],
+        [RINK["red_line"]["x"], RINK["red_line"]["x"]],
+        c="r",
+        lw=7,
+        **kwargs,
+    ))
+    ax.add_line(Line2D(
+        [
+            -RINK["boards"]["y"]["upper"] - RINK["boards"]["y"]["pad"],
+            RINK["boards"]["y"]["upper"] + RINK["boards"]["y"]["pad"],
+        ],
+        [RINK["blue_line"]["x"], RINK["blue_line"]["x"]],
+        c="b",
+        lw=7,
+        **kwargs,
+    ))
+    ax.add_line(Line2D(
+        [RINK["red_line"]["y"], RINK["red_line"]["y"]],
+        [RINK["boards"]["x"]["lower"], RINK["boards"]["x"]["upper"]],
+        c="k",
+        lw=1.5,
+        ls="--",
+        **kwargs,
+    ))
+    ax.set_xlim([
+        -RINK["boards"]["y"]["upper"] - RINK["pad"]["x"],
+        RINK["boards"]["y"]["upper"] + RINK["pad"]["x"],
+    ])
+    ax.set_ylim([
+        RINK["boards"]["x"]["lower"] - RINK["pad"]["y"],
+        RINK["boards"]["x"]["upper"] + RINK["pad"]["y"],
+    ])
 
 
-def do_plot(time, teams, players, shots, filename):
+def do_plot(data, filename):
     (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(6, 9.75))
     kwargs = {"family": "monospace", "alpha": 0.775}
-    for (i, (team_id, team)) in enumerate(teams.items()):
+    for (i, (team_id, team)) in enumerate(data["teams"].items()):
         axs[0, i].set_title(team["name"], fontsize="x-large", **kwargs)
         for j in range(3):
             axs[j, i].set_xticks([])
@@ -202,14 +239,14 @@ def do_plot(time, teams, players, shots, filename):
             for edge in ["top", "right", "left", "bottom"]:
                 axs[j, i].spines[edge].set_visible(False)
             axs[j, i].set_aspect("equal")
-            (min_x, max_x, min_y, max_y) = set_rink(axs[j, i])
-            team_shots = shots.loc[
-                (shots.team_id == team_id)
-                & (shots.period == j + 1)
-                & (min_x < shots.x)
-                & (shots.x < max_x)
-                & (min_y < shots.y)
-                & (shots.y < max_y),
+            set_rink(axs[j, i])
+            team_shots = data["shots"].loc[
+                (data["shots"].team_id == team_id) &
+                (data["shots"].period == j + 1) &
+                (RINK["boards"]["x"]["lower"] < data["shots"].x) &
+                (data["shots"].x < RINK["boards"]["x"]["upper"]) &
+                (-RINK["boards"]["y"]["upper"] < data["shots"].y) &
+                (data["shots"].y < RINK["boards"]["y"]["upper"]),
             ]
             axs[j, i].scatter(
                 team_shots.y,
@@ -224,7 +261,7 @@ def do_plot(time, teams, players, shots, filename):
                 axs[j, i].text(
                     row.y,
                     row.x,
-                    players[row.player_id]["last_name"],
+                    data["players"][row.player_id]["last_name"],
                     size="xx-small",
                     ha="center",
                     va="center",
@@ -233,7 +270,10 @@ def do_plot(time, teams, players, shots, filename):
                 )
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
-    fig.suptitle(time.strftime("%Y-%m-%dT%H:%M:%SZ"), fontsize="medium")
+    fig.suptitle(
+        data["time"].strftime("%Y-%m-%dT%H:%M:%SZ"),
+        fontsize="medium",
+    )
     tight_layout()
     savefig(filename)
     close()
@@ -242,7 +282,7 @@ def do_plot(time, teams, players, shots, filename):
 
 def main():
     filename = argv[1]
-    do_plot(*get_shots(filename), "{}.png".format(splitext(filename)[0]))
+    do_plot(get_data(filename), "{}.png".format(splitext(filename)[0]))
 
 
 if __name__ == "__main__":
