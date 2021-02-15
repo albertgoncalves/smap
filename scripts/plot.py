@@ -14,7 +14,7 @@ from pandas import DataFrame
 
 RINK = {
     "goal": {
-        "x": 87.0,
+        "x": 89.0,
         "y": -3.0,
         "width": 2.0,
         "height": 6.0,
@@ -25,14 +25,14 @@ RINK = {
         "radius": 15.0,
     },
     "blue_line": {
-        "x": 29.0,
+        "x": 25.0,
     },
     "red_line": {
         "x": 0.0,
         "y": 0.0,
     },
     "goal_line": {
-        "y": 43.0,
+        "y": 40.0,
     },
     "boards": {
         "x": {
@@ -40,13 +40,13 @@ RINK = {
             "upper": 100.0,
         },
         "y": {
-            "upper": 45.0,
+            "upper": 42.5,
             "pad": -0.75,
         },
     },
     "pad": {
-        "x": 12.0,
-        "y": 5.0,
+        "x": 11.0,
+        "y": 4.0,
     },
 }
 
