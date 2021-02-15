@@ -140,24 +140,24 @@ def get_curve(radius, degree):
 
 
 def get_unit_boards():
-    l = 4.5
+    weight = 4.5
     lower = get_curve(1.0, arange(90.0, 180.0, 1.0))
     upper = get_curve(1.0, arange(0.0, 90.0, 1.0))
     return {
         "x": concatenate([
             array([0.0]),
-            upper["x"] + l - 1.0,
-            array([l]),
-            lower["x"] + l - 1.0,
+            upper["x"] + weight - 1.0,
+            array([weight]),
+            lower["x"] + weight - 1.0,
             array([0.0]),
-        ], axis=None) / l,
+        ], axis=None) / weight,
         "y": concatenate([
-            array([l]),
-            upper["y"] + l - 1.0,
-            array([(l / 2.0)]),
+            array([weight]),
+            upper["y"] + weight - 1.0,
+            array([(weight / 2.0)]),
             lower["y"] + 1.0,
             array([0.0]),
-        ], axis=None) / l,
+        ], axis=None) / weight,
     }
 
 
