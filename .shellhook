@@ -8,8 +8,8 @@ fi
 
 gg () {
     game=$(./scripts/game.sh "$1") || return
-    plot=$(./scripts/plot.py "$game") || return
-    feh "$plot"
+    shots=$(./scripts/shots.py "$game") || return
+    feh "$shots"
 }
 
 jqc () {
