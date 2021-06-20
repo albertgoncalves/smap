@@ -237,43 +237,55 @@ def set_rink(ax):
         ax.spines[edge].set_visible(False)
 
 
+def set_shots(ax, data, team_id, periods, kwargs):
+    team_shots = data["shots"].loc[
+        (data["shots"].team_id == team_id) &
+        (data["shots"].period.isin(periods)) &
+        (RINK["boards"]["x"]["lower"] < data["shots"].x) &
+        (data["shots"].x < RINK["boards"]["x"]["upper"]) &
+        (-RINK["boards"]["y"]["upper"] < data["shots"].y) &
+        (data["shots"].y < RINK["boards"]["y"]["upper"]),
+    ]
+    ax.scatter(
+        team_shots.y,
+        team_shots.x,
+        color=team_shots.goal.map({True: "coral", False: "c"}),
+        marker="o",
+        s=350,
+        alpha=0.275,
+        zorder=0,
+    )
+    for (_, row) in team_shots.iterrows():
+        ax.text(
+            row.y,
+            row.x,
+            data["players"][row.player_id]["last_name"],
+            size="xx-small",
+            ha="center",
+            va="center",
+            zorder=2,
+            **kwargs,
+        )
+
+
 def do_plot(data, filename):
-    (fig, axs) = subplots(3, 2, sharex=True, sharey=True, figsize=(6, 9.75))
+    periods = data["shots"].period.unique()
+    n = 3 if periods.max() < 4 else 4
+    (fig, axs) = \
+        subplots(n, 2, sharex=True, sharey=True, figsize=(6, 2.75 * n))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(data["teams"].items()):
         axs[0, i].set_title(team["name"], fontsize="x-large", **kwargs)
         for j in range(3):
             set_rink(axs[j, i])
-            team_shots = data["shots"].loc[
-                (data["shots"].team_id == team_id) &
-                (data["shots"].period == j + 1) &
-                (RINK["boards"]["x"]["lower"] < data["shots"].x) &
-                (data["shots"].x < RINK["boards"]["x"]["upper"]) &
-                (-RINK["boards"]["y"]["upper"] < data["shots"].y) &
-                (data["shots"].y < RINK["boards"]["y"]["upper"]),
-            ]
-            axs[j, i].scatter(
-                team_shots.y,
-                team_shots.x,
-                color=team_shots.goal.map({True: "coral", False: "c"}),
-                marker="o",
-                s=350,
-                alpha=0.275,
-                zorder=0,
-            )
-            for (_, row) in team_shots.iterrows():
-                axs[j, i].text(
-                    row.y,
-                    row.x,
-                    data["players"][row.player_id]["last_name"],
-                    size="xx-small",
-                    ha="center",
-                    va="center",
-                    zorder=2,
-                    **kwargs,
-                )
+            set_shots(axs[j, i], data, team_id, [j + 1], kwargs)
+        if n == 4:
+            set_rink(axs[3, i])
+            set_shots(axs[3, i], data, team_id, periods[3 < periods], kwargs)
     for j in range(3):
         axs[j, 0].set_ylabel(j + 1, rotation=0, ha="right")
+    if n == 4:
+        axs[3, 0].set_ylabel("4+", rotation=0, ha="right")
     fig.suptitle(
         data["time"].strftime("%Y-%m-%dT%H:%M:%SZ"),
         fontsize="medium",
