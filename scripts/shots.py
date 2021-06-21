@@ -274,7 +274,7 @@ def do_plot(data, path):
     periods = data["shots"].period.unique()
     n = 3 if periods.max() < 4 else 4
     (fig, axs) = \
-        subplots(n, 2, sharex=True, sharey=True, figsize=(6, 2.75 * n))
+        subplots(n, 2, sharex=True, sharey=True, figsize=(6, 2.65 * n))
     kwargs = {"family": "monospace", "alpha": 0.775}
     for (i, (team_id, team)) in enumerate(data["teams"].items()):
         axs[0, i].set_title(team["name"], fontsize="x-large", **kwargs)
