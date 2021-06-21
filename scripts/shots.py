@@ -51,8 +51,8 @@ RINK = {
 }
 
 
-def get_data(filename):
-    with open(filename, "r") as file:
+def get_data(path):
+    with open(path, "r") as file:
         blob = load(file)
     time = datetime.strptime(
         blob["gameData"]["datetime"]["dateTime"],
@@ -268,7 +268,7 @@ def set_shots(ax, data, team_id, periods, kwargs):
         )
 
 
-def do_plot(data, filename):
+def do_plot(data, path):
     periods = data["shots"].period.unique()
     n = 3 if periods.max() < 4 else 4
     (fig, axs) = \
@@ -291,14 +291,14 @@ def do_plot(data, filename):
         fontsize="medium",
     )
     tight_layout()
-    savefig(filename)
+    savefig(path)
     close()
-    print(filename)
+    print(path)
 
 
 def main():
-    filename = argv[1]
-    do_plot(get_data(filename), "{}.png".format(splitext(filename)[0]))
+    path = argv[1]
+    do_plot(get_data(path), "{}.png".format(splitext(path)[0]))
 
 
 if __name__ == "__main__":
