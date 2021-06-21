@@ -120,7 +120,9 @@ def get_data(path):
         -shots.loc[~shots.home & ~odd_periods, "x"]
     shots.loc[~shots.home & odd_periods, "y"] = \
         -shots.loc[~shots.home & odd_periods, "y"]
-    if shots.x.mean() < 0:
+    period = blob["liveData"]["linescore"]["periods"][0]
+    assert period["num"] == 1
+    if period["home"] == "right":
         shots.x = -shots.x
         shots.y = -shots.y
     return {
