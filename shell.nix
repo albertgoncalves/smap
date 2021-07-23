@@ -1,7 +1,7 @@
 with import <nixpkgs> {};
 mkShell {
     buildInputs = [
-        (python38.withPackages (ps: with ps; [
+        (python3.withPackages (ps: with ps; [
             flake8
             matplotlib
             pandas
